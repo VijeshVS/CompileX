@@ -1,8 +1,7 @@
 {
   "name": "c_worker",
   "version": "1.0.0",
-  "main": "worker.js",
-  "type": "module",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +9,11 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "pidusage": "^4.0.0"
+  },
   "dependencies": {
-    "amqplib": "^0.10.5"
+    "@types/pidusage": "^2.0.5"
   }
 }
