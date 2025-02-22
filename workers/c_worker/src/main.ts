@@ -1,7 +1,5 @@
-import { exec, execSync, spawn } from "child_process";
+import { exec, spawn } from "child_process";
 import fs from "fs";
-import pidusage from "pidusage";
-import { stderr } from "process";
 
 interface TestCase {
   input: string;
@@ -50,20 +48,10 @@ async function TestAgainstTestCases(
         process.kill("SIGKILL");
         errorStatusCode = 402;
         errorMessage = "TLE";
-        // console.error(`Test case ${index + 1} ❌ Failed | TLE`);
       }, timeLimit);
 
       const memory_monitor = setInterval(() => {
-        pidusage(process.pid as number, (err, stats) => {
-          if (!err && stats.memory / 1024 / 1024 > memoryLimit) {
-            process.kill("SIGKILL");
-            errorStatusCode = 401;
-            errorMessage = "MLE";
-            // console.error(
-            //   `Test Case ${index + 1}: ❌ Failed (Memory Limit Exceeded)`
-            // );
-          }
-        });
+        // memory usage check
       }, 100);
 
       process.stdout.on("data", (data) => {
@@ -110,6 +98,12 @@ async function TestAgainstTestCases(
 
 async function runCode() {
   exec(COMPILE_COMMAND, async (error, stdout, stderr) => {
+
+    if(error){
+      console.log(error);
+      return;
+    }
+
     const testCases: TestCase[] = [
       { input: "1\n2\n", output: "3\n" },
       { input: "5\n7\n", output: "12\n" },
