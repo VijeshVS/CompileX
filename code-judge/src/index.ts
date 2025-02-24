@@ -21,7 +21,6 @@ const redis_client = createClient({
   url: REDIS_CLIENT_URL,
 });
 
-console.log(process.env.hello);
 redis_client.on("error", (err) => console.error("Redis Client Error", err));
 
 async function connectRedisClient() {
@@ -165,7 +164,6 @@ async function consumeWork() {
           work.memory_limit
         );
 
-        console.log("Results:", results);
         redis_client.set(work.commit_id, JSON.stringify(results));
         channel.ack(msg);
       }

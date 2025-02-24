@@ -1,5 +1,9 @@
 {
+  "scripts": {
+    "start": "tsc -b && node dist/index.js"
+  },
   "dependencies": {
+    "@types/amqplib": "^0.10.6",
     "amqplib": "^0.10.5",
     "crypto": "^1.0.1",
     "express": "^4.21.2",
