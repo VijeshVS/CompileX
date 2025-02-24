@@ -15,3 +15,16 @@
 | `500` | **Internal Error (IE)** | Unexpected server-side error during execution. |
 | `600` | **Pending (PENDING)** | The solution is in the queue and waiting for execution. |
 | `700` | **Running (RUNNING)** | The solution is currently being evaluated. |
+
+### Execution Flow of Workers
+
+1. **Write source code to `temp.c`**
+2. **Compile the C program using `gcc execute.c -o a.out`**
+3. **Define test cases**
+4. **Execute `a.out` with test case input**
+5. **Monitor execution for time and memory limits**
+6. **Compare observed output with expected output**
+7. **Log results**
+
+
+
