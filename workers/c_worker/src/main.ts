@@ -1,19 +1,7 @@
 import { exec, spawn } from "child_process";
 import fs from "fs";
 import pidusage from "pidusage";
-
-interface TestCase {
-  input: string;
-  output: string;
-}
-
-interface CodeOutput {
-  input: string;
-  expected_output: string;
-  observed_output: string | null;
-  status: number;
-  error: string | null;
-}
+import { CodeOutput, TestCase } from './types/workerTypes'
 
 const FILE_PATH = "execute.c";
 const OUTPUT_BINARY = "a.out";
