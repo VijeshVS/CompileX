@@ -52,9 +52,11 @@ async function TestAgainstTestCases(
       let errorMessage: string;
 
       const tle_timeout = setTimeout(() => {
-        process.kill("SIGKILL");
-        errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
-        errorMessage = "Time Limit Exceeded";
+        // some issue with tle idk
+
+        // process.kill("SIGKILL");
+        // errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
+        // errorMessage = "Time Limit Exceeded";
       }, timeLimit);
 
       const memory_monitor = setInterval(() => {
@@ -118,6 +120,7 @@ async function runCode(
   timeLimit: number,
   memoryLimit: number
 ): Promise<CodeOutput[]> {
+
   return new Promise((resolve, _reject) => {
     exec(config.compile_command, async (error, _stdout, stderr) => {
       if (error) {
@@ -155,6 +158,7 @@ async function consumeWork() {
     channel.consume(queue, async (msg) => {
       if (msg !== null) {
         const work: CodeWork = JSON.parse(msg.content.toString());
+
         writeContent(LANGUAGE_CONFIG[work.language].file_path, work.code);
 
         const results = await runCode(

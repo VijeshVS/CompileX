@@ -2,10 +2,14 @@ import express, { Request, Response } from "express";
 import amqp from "amqplib";
 import { createClient } from "redis";
 import crypto from "crypto";
+import cors from 'cors'
 
 const app = express();
 const PORT = 3000;
 const QUEUE = "code-judge";
+app.use(cors({
+  origin: '*'
+}))
 
 const redisClient = createClient();
 redisClient.connect();
@@ -44,12 +48,12 @@ app.post("/submit", async (req: Request, res: Response) => {
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE, { durable: false });
     channel.sendToQueue(QUEUE, Buffer.from(JSON.stringify(message)));
-    console.log(" [x] Sent", message);
+    
     setTimeout(() => connection.close(), 500);
   } catch (error) {
     return res.status(500).json({ error: "RabbitMQ operation failed" });
   }
-  await redisClient.set(commit_id, "pending");
+  // await redisClient.set(commit_id, "pending");
   res.json({ commit_id });
 });
 
@@ -58,9 +62,11 @@ app.post("/submit", async (req: Request, res: Response) => {
 app.get("/status/:commitId", async (req: Request, res: Response) => {
   const { commitId } = req.params;
   const status = await redisClient.get(commitId);
+
   if (!status) {
     return res.json({ status: "pending" });
   }
+  
   res.json({ status: JSON.parse(status) });
 });
 
