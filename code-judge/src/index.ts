@@ -54,10 +54,10 @@ async function TestAgainstTestCases(
       const tle_timeout = setTimeout(() => {
         // some issue with tle idk
 
-        // process.kill("SIGKILL");
-        // errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
-        // errorMessage = "Time Limit Exceeded";
-      }, timeLimit);
+        process.kill("SIGKILL");
+        errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
+        errorMessage = "Time Limit Exceeded";
+      }, timeLimit*1000);
 
       const memory_monitor = setInterval(() => {
         pidusage(process.pid as number, (err, stats) => {
