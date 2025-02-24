@@ -1,24 +1,18 @@
 import { exec, spawn } from "child_process";
 import fs from "fs";
 import pidusage from "pidusage";
+import { CodeOutput, CodeWork, LanguageConfig, TestCase } from "./types/main";
+import amqplib from "amqplib";
+import { LANGUAGE_CONFIG } from "./config/main";
+import redis from "redis";
 
-interface TestCase {
-  input: string;
-  output: string;
-}
+const redis_client = redis.createClient({
+  url: "redis://localhost:6379"
+});
 
-interface CodeOutput {
-  input: string;
-  expected_output: string;
-  observed_output: string | null;
-  status: number;
-  error: string | null;
-}
-
-const FILE_PATH = "execute.cpp";
-const OUTPUT_BINARY = "a.out";
-const COMPILE_COMMAND = `g++ ${FILE_PATH} -o ${OUTPUT_BINARY}`;
-const EXECUTE_COMMAND = `./${OUTPUT_BINARY}`;
+redis_client.on("error", (err) => {
+  console.error("Redis client error:", err);
+});
 
 function writeContent(file_path: string, content: string) {
   try {
@@ -31,14 +25,15 @@ function writeContent(file_path: string, content: string) {
 async function TestAgainstTestCases(
   testCases: TestCase[],
   timeLimit: number,
-  memoryLimit: number
-) {
+  memoryLimit: number,
+  config: LanguageConfig
+): Promise<CodeOutput[]> {
   const testResults: CodeOutput[] = [];
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     for (let index = 0; index < testCases.length; index++) {
       const test_case = testCases[index];
-      const process = spawn(EXECUTE_COMMAND);
+      const process = spawn(config.execute_command);
       let output = "";
       let errorStatusCode = 0;
       let errorMessage = "";
@@ -51,7 +46,6 @@ async function TestAgainstTestCases(
 
       const memory_monitor = setInterval(() => {
         pidusage(process.pid as any, (err: any, stats: any) => {
-          console.log(stats.memory/1024/1024)
           if (err) {
             console.error("Error fetching memory usage:", err);
             return;
@@ -105,21 +99,59 @@ async function TestAgainstTestCases(
   });
 }
 
-async function runCode() {
-  exec(COMPILE_COMMAND, async (error, stdout, stderr) => {
-    if (error) {
-      console.log("Compilation Error:", stderr);
-      return;
-    }
+async function runCode(
+  config: LanguageConfig,
+  testCases: TestCase[],
+  timeLimit: number,
+  memoryLimit: number
+): Promise<CodeOutput[]> {
+  return new Promise((resolve, reject) => {
+    exec(config.compile_command, async (error, _stdout, stderr) => {
+      if (error) {
+        console.log("Compilation Error:", stderr);
+        resolve([]);
+      }
 
-    const testCases: TestCase[] = [{ input: "50\n", output: "3" }];
+      const results = await TestAgainstTestCases(
+        testCases,
+        timeLimit,
+        memoryLimit,
+        config
+      );
 
-    const timeLimit = 2000; // 2 seconds
-    const memoryLimit = 256; // 256 MB
-
-    const results = await TestAgainstTestCases(testCases, timeLimit, memoryLimit);
-    console.log(results);
+      resolve(results);
+    });
   });
 }
 
-runCode();
+async function consumeWork() {
+  try {
+    const connection = await amqplib.connect("amqp://localhost");
+    const channel = await connection.createChannel();
+
+    const queue = "code-judge";
+    await channel.assertQueue(queue, { durable: false });
+
+    channel.consume(queue, async (msg) => {
+      if (msg !== null) {
+        const work: CodeWork = JSON.parse(msg.content.toString());
+        writeContent(LANGUAGE_CONFIG[work.language].file_path, work.code);
+
+        const results = await runCode(
+          LANGUAGE_CONFIG[work.language],
+          work.test_cases,
+          work.time_limit,
+          work.memory_limit
+        );
+        
+        redis_client.set(work.commit_id, JSON.stringify(results));
+
+        channel.ack(msg);
+      }
+    });
+  } catch (err) {
+    console.error("Error connecting to RabbitMQ:", err);
+  }
+}
+
+consumeWork();
