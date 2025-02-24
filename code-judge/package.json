@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "amqplib": "^0.10.5",
+    "dotenv": "^16.4.7",
     "redis": "^4.7.0"
   },
   "devDependencies": {

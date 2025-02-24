@@ -1,18 +1,32 @@
 import { exec, spawn } from "child_process";
 import fs from "fs";
 import pidusage from "pidusage";
-import { CodeOutput, CodeWork, LanguageConfig, TestCase } from "./types/main";
+import {
+  CodeJudgeStatus,
+  CodeOutput,
+  CodeWork,
+  LanguageConfig,
+  TestCase,
+} from "./types/main";
 import amqplib from "amqplib";
 import { LANGUAGE_CONFIG } from "./config/main";
-import redis from "redis";
+import { createClient } from "redis";
+import dotenv from "dotenv";
 
-const redis_client = redis.createClient({
-  url: "redis://localhost:6379"
+dotenv.config();
+const REDIS_CLIENT_URL = process.env.REDIS_CLIENT_URL;
+const RABBITMQ_URL = process.env.RABBITMQ_URL;
+
+const redis_client = createClient({
+  url: REDIS_CLIENT_URL,
 });
 
-redis_client.on("error", (err) => {
-  console.error("Redis client error:", err);
-});
+console.log(process.env.hello);
+redis_client.on("error", (err) => console.error("Redis Client Error", err));
+
+async function connectRedisClient() {
+  await redis_client.connect();
+}
 
 function writeContent(file_path: string, content: string) {
   try {
@@ -35,24 +49,24 @@ async function TestAgainstTestCases(
       const test_case = testCases[index];
       const process = spawn(config.execute_command);
       let output = "";
-      let errorStatusCode = 0;
-      let errorMessage = "";
+      let errorStatusCode: number;
+      let errorMessage: string;
 
       const tle_timeout = setTimeout(() => {
         process.kill("SIGKILL");
-        errorStatusCode = 402;
-        errorMessage = "TLE";
+        errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
+        errorMessage = "Time Limit Exceeded";
       }, timeLimit);
 
       const memory_monitor = setInterval(() => {
-        pidusage(process.pid as any, (err: any, stats: any) => {
+        pidusage(process.pid as number, (err, stats) => {
           if (err) {
             console.error("Error fetching memory usage:", err);
             return;
           }
           if (stats.memory / 1024 / 1024 > memoryLimit) {
             process.kill("SIGKILL");
-            errorStatusCode = 403;
+            errorStatusCode = CodeJudgeStatus.MEMORY_LIMIT_EXCEEDED;
             errorMessage = "Memory Limit Exceeded";
           }
         });
@@ -70,7 +84,7 @@ async function TestAgainstTestCases(
           input: test_case.input,
           expected_output: test_case.output,
           observed_output: output.trim(),
-          status: 200,
+          status: CodeJudgeStatus.ACCEPTED,
           error: null,
         };
 
@@ -82,7 +96,7 @@ async function TestAgainstTestCases(
           currentOutput.error = errorMessage;
         } else {
           if (test_case.output != output.trim()) {
-            currentOutput.status = 300;
+            currentOutput.status = CodeJudgeStatus.WRONG_ANSWER;
           }
         }
 
@@ -105,13 +119,19 @@ async function runCode(
   timeLimit: number,
   memoryLimit: number
 ): Promise<CodeOutput[]> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     exec(config.compile_command, async (error, _stdout, stderr) => {
       if (error) {
-        console.log("Compilation Error:", stderr);
-        resolve([]);
+        resolve([
+          {
+            input: "",
+            expected_output: "",
+            observed_output: "",
+            status: CodeJudgeStatus.COMPILATION_ERROR,
+            error: stderr,
+          },
+        ]);
       }
-
       const results = await TestAgainstTestCases(
         testCases,
         timeLimit,
@@ -126,7 +146,8 @@ async function runCode(
 
 async function consumeWork() {
   try {
-    const connection = await amqplib.connect("amqp://localhost");
+    await connectRedisClient();
+    const connection = await amqplib.connect(RABBITMQ_URL as string);
     const channel = await connection.createChannel();
 
     const queue = "code-judge";
@@ -143,9 +164,9 @@ async function consumeWork() {
           work.time_limit,
           work.memory_limit
         );
-        
-        redis_client.set(work.commit_id, JSON.stringify(results));
 
+        console.log("Results:", results);
+        redis_client.set(work.commit_id, JSON.stringify(results));
         channel.ack(msg);
       }
     });

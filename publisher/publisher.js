@@ -3,21 +3,24 @@ const amqp = require('amqplib/callback_api');
 const queue = 'code-judge';
 const message = {
     code: `
-        #include <stdio.h>
-        int add(int a, int b) {
-            return a + b;
-        }
-    `,
+#include <stdio.h>
+
+int main() {
+    mdadsc
+    akc
+    ;;cacc
+}
+`,
     time_limit: 1000,
     memory_limit: 256,
     test_cases: [
         {
             input: "2 3",
-            expected_output: "5"
+            output: "5"
         },
         {
             input: "10 15",
-            expected_output: "25"
+            output: "25"
         }
     ],
     language: 'c',
