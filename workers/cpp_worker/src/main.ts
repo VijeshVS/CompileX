@@ -15,9 +15,9 @@ interface CodeOutput {
   error: string | null;
 }
 
-const FILE_PATH = "execute.c";
+const FILE_PATH = "execute.cpp";
 const OUTPUT_BINARY = "a.out";
-const COMPILE_COMMAND = `gcc ${FILE_PATH} -o ${OUTPUT_BINARY}`;
+const COMPILE_COMMAND = `g++ ${FILE_PATH} -o ${OUTPUT_BINARY}`;
 const EXECUTE_COMMAND = `./${OUTPUT_BINARY}`;
 
 function writeContent(file_path: string, content: string) {
@@ -51,6 +51,7 @@ async function TestAgainstTestCases(
 
       const memory_monitor = setInterval(() => {
         pidusage(process.pid as any, (err: any, stats: any) => {
+          console.log(stats.memory/1024/1024)
           if (err) {
             console.error("Error fetching memory usage:", err);
             return;
@@ -113,8 +114,8 @@ async function runCode() {
 
     const testCases: TestCase[] = [{ input: "50\n", output: "3" }];
 
-    const timeLimit = 5000; // 5 seconds
-    const memoryLimit = 50; // 50 MB
+    const timeLimit = 2000; // 2 seconds
+    const memoryLimit = 256; // 256 MB
 
     const results = await TestAgainstTestCases(testCases, timeLimit, memoryLimit);
     console.log(results);
