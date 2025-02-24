@@ -50,9 +50,7 @@ async function TestAgainstTestCases(
         errorMessage = "TLE";
       }, timeLimit);
 
-      const memory_monitor = setInterval(() => {
-        // memory usage check
-      }, 100);
+      const memory_monitor = setInterval(() => {}, 100);
 
       process.stdout.on("data", (data) => {
         output += data.toString();
@@ -75,12 +73,11 @@ async function TestAgainstTestCases(
           currentOutput.error = "Segmentation Fault !!";
         } else if (signal == "SIGKILL") {
           currentOutput.status = errorStatusCode;
-          currentOutput.error = errorMessage 
-        }
-        else {
-            if(test_case.output != output){
-                currentOutput.status = 300;
-            }
+          currentOutput.error = errorMessage;
+        } else {
+          if (test_case.output != output) {
+            currentOutput.status = 300;
+          }
         }
 
         testResults.push(currentOutput);
@@ -98,16 +95,13 @@ async function TestAgainstTestCases(
 
 async function runCode() {
   exec(COMPILE_COMMAND, async (error, stdout, stderr) => {
-
-    if(error){
+    if (error) {
       console.log(error);
       return;
     }
 
-    const testCases: TestCase[] = [
-      { input: "1\n2\n", output: "3\n" },
-      { input: "5\n7\n", output: "12\n" },
-    ];
+    const testCases: TestCase[] = [{ input: "50\n", output: "3\n" }];
+
     const timeLimit = 2000; // 2 seconds
     const memoryLimit = 50; // 50 MB
 
