@@ -6,6 +6,7 @@ import {
   CodeOutput,
   CodeWork,
   LanguageConfig,
+  ProcessSignal,
   TestCase,
 } from "./types/main";
 import amqplib from "amqplib";
@@ -52,12 +53,10 @@ async function TestAgainstTestCases(
       let errorMessage: string;
 
       const tle_timeout = setTimeout(() => {
-        // some issue with tle idk
-
-        process.kill("SIGKILL");
+        process.kill(ProcessSignal.ImmediateTermination);
         errorStatusCode = CodeJudgeStatus.TIME_LIMIT_EXCEEDED;
         errorMessage = "Time Limit Exceeded";
-      }, timeLimit*1000);
+      }, timeLimit * 1000);
 
       const memory_monitor = setInterval(() => {
         pidusage(process.pid as number, (err, stats) => {
@@ -65,8 +64,9 @@ async function TestAgainstTestCases(
             console.error("Error fetching memory usage:", err);
             return;
           }
-          if (stats.memory / 1024 / 1024 > memoryLimit) {
-            process.kill("SIGKILL");
+          const MemoryinMB = stats.memory / 1024 / 1024;
+          if (MemoryinMB > memoryLimit) {
+            process.kill(ProcessSignal.ImmediateTermination);
             errorStatusCode = CodeJudgeStatus.MEMORY_LIMIT_EXCEEDED;
             errorMessage = "Memory Limit Exceeded";
           }
@@ -77,7 +77,7 @@ async function TestAgainstTestCases(
         output += data.toString();
       });
 
-      process.on("close", (code, signal) => {
+      process.on("close", (_code, signal) => {
         clearTimeout(tle_timeout);
         clearInterval(memory_monitor);
 
@@ -89,10 +89,10 @@ async function TestAgainstTestCases(
           error: null,
         };
 
-        if (signal == "SIGSEGV") {
+        if (signal == ProcessSignal.SegementationFault) {
           currentOutput.status = 400;
           currentOutput.error = "Segmentation Fault !!";
-        } else if (signal == "SIGKILL") {
+        } else if (signal == ProcessSignal.ImmediateTermination) {
           currentOutput.status = errorStatusCode;
           currentOutput.error = errorMessage;
         } else {
@@ -120,7 +120,6 @@ async function runCode(
   timeLimit: number,
   memoryLimit: number
 ): Promise<CodeOutput[]> {
-
   return new Promise((resolve, _reject) => {
     exec(config.compile_command, async (error, _stdout, stderr) => {
       if (error) {

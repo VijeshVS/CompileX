@@ -39,3 +39,7 @@ export enum CodeJudgeStatus {
   RUNNING = 700           // Running (RUNNING)
 }
 
+export enum ProcessSignal {
+  SegementationFault = "SIGSEGV",
+  ImmediateTermination = "SIGKILL"
+}
