@@ -10,7 +10,7 @@
 ### Components
 
 1. **Code-Judge**
-   - Responsible for evaluating the submitted code against different programming languages.
+   - Responsible for evaluating the submitted code.
    - Enforces time and memory limits while executing the code.
    - Tests the submitted code against all provided test cases.
    - Picks up jobs from the RabbitMQ queue and processes them.
