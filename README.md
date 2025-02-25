@@ -10,11 +10,11 @@
    - Tests the submitted code against all provided test cases.
    - Picks up jobs from the RabbitMQ queue and processes them.
 
-2. **IDE-Backend**
+2. **Backend**
    - Pushes submitted code to the queue for execution.
    - Ensures that the job is correctly formatted and ready for processing by workers.
 
-3. **IDE-Frontend**
+3. **Frontend**
    - User interface for the code execution platform.
    - Allows users to submit code and interact with the system.
 
