@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor from "@monaco-editor/react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -18,20 +18,52 @@ const SUPPORTED_LANGUAGES = [
   {id: "go", name: "Go"}
 ];
 
-const DEFAULT_CODE = `#include <stdio.h>
-
-int sum(int a, int b) {
-  return a + b;
-}
+const DEFAULT_CODE = {
+  c: `#include <stdio.h>
 
 int main() {
-  int a = 5, b = 3;
-  printf("%d\\n", sum(a, b));
-  return 0;
-}`;
+    int a, b;
+    scanf("%d %d", &a, &b);
+    printf("%d\\n", a + b);
+    return 0;
+}`,
+  python: `a, b = map(int, input().split())
+print(a + b)`,
+  javascript: `const [a, b] = input().split(' ').map(Number);
+console.log(a + b);`,
+  java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int a = scanner.nextInt();
+        int b = scanner.nextInt();
+        System.out.println(a + b);
+    }
+}`,
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    int a, b;
+    cin >> a >> b;
+    cout << a + b << endl;
+    return 0;
+}`,
+  go: `package main
+
+import "fmt"
+
+func main() {
+    var a, b int
+    fmt.Scan(&a, &b)
+    fmt.Println(a + b)
+}`
+};
+
 
 function App() {
-  const [code, setCode] = useState<string>(DEFAULT_CODE);
+  const [code, setCode] = useState<string>(DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id]);
   const [language, setLanguage] = useState<string>(SUPPORTED_LANGUAGES[0].id);
   const [timeLimit, setTimeLimit] = useState<number>(1);
   const [memoryLimit, setMemoryLimit] = useState<number>(256);
@@ -41,6 +73,10 @@ function App() {
   ]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [executionResults, setExecutionResults] = useState<any[]>([]);
+
+  useEffect(()=>{
+    setCode(DEFAULT_CODE[language])
+  },[language])
 
   const addTestCase = () =>
     setTestCases([...testCases, { input: "", output: "" }]);
