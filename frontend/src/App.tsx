@@ -15,7 +15,7 @@ const SUPPORTED_LANGUAGES = [
   { id: "javascript", name: "JavaScript" },
   { id: "java", name: "Java" },
   { id: "cpp", name: "C++" },
-  {id: "go", name: "Go"}
+  { id: "go", name: "Go" },
 ];
 
 const DEFAULT_CODE = {
@@ -58,12 +58,13 @@ func main() {
     var a, b int
     fmt.Scan(&a, &b)
     fmt.Println(a + b)
-}`
+}`,
 };
 
-
 function App() {
-  const [code, setCode] = useState<string>(DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id]);
+  const [code, setCode] = useState<string>(
+    DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id]
+  );
   const [language, setLanguage] = useState<string>(SUPPORTED_LANGUAGES[0].id);
   const [timeLimit, setTimeLimit] = useState<number>(1);
   const [memoryLimit, setMemoryLimit] = useState<number>(256);
@@ -74,9 +75,9 @@ function App() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [executionResults, setExecutionResults] = useState<any[]>([]);
 
-  useEffect(()=>{
-    setCode(DEFAULT_CODE[language])
-  },[language])
+  useEffect(() => {
+    setCode(DEFAULT_CODE[language]);
+  }, [language]);
 
   const addTestCase = () =>
     setTestCases([...testCases, { input: "", output: "" }]);
