@@ -15,6 +15,7 @@ const SUPPORTED_LANGUAGES = [
   { id: "javascript", name: "JavaScript" },
   { id: "java", name: "Java" },
   { id: "cpp", name: "C++" },
+  {id: "go", name: "Go"}
 ];
 
 const DEFAULT_CODE = `#include <stdio.h>
