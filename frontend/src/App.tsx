@@ -191,6 +191,7 @@ function App() {
             height="400px"
             language={language}
             value={code}
+            // @ts-ignore
             onChange={setCode}
             theme="vs-dark"
           />
