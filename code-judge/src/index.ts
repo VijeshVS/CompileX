@@ -97,7 +97,7 @@ async function TestAgainstTestCases(
           currentOutput.status = errorStatusCode;
           currentOutput.error = errorMessage;
         } else {
-          if (test_case.output != output.trim()) {
+          if (test_case.output.trim() != output.trim()) {
             currentOutput.status = CodeJudgeStatus.WRONG_ANSWER;
           }
         }
