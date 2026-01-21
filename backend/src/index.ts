@@ -34,6 +34,10 @@ interface CodeSubmission {
   commit_id: string;
 }
 
+app.get("/health",(req,res)=>{
+  res.json({status:"ok"})
+})
+
 // POST endpoint to submit code
 // @ts-ignore
 app.post("/submit", async (req: Request, res: Response) => {
