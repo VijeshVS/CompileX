@@ -17,6 +17,7 @@ import dotenv from "dotenv";
 dotenv.config();
 const REDIS_CLIENT_URL = process.env.REDIS_CLIENT_URL;
 const RABBITMQ_URL = process.env.RABBITMQ_URL;
+const QUEUE_NAME = process.env.QUEUE_NAME || "code-judge";
 
 const redis_client = createClient({
   url: REDIS_CLIENT_URL,
@@ -151,10 +152,9 @@ async function consumeWork() {
     const connection = await amqplib.connect(RABBITMQ_URL as string);
     const channel = await connection.createChannel();
 
-    const queue = "code-judge";
-    await channel.assertQueue(queue, { durable: false });
+    await channel.assertQueue(QUEUE_NAME, { durable: false });
 
-    channel.consume(queue, async (msg) => {
+    channel.consume(QUEUE_NAME, async (msg) => {
       if (msg !== null) {
         const work: CodeWork = JSON.parse(msg.content.toString());
 

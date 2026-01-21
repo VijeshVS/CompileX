@@ -3,15 +3,24 @@ import amqp from "amqplib";
 import { createClient } from "redis";
 import crypto from "crypto";
 import cors from 'cors'
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const app = express();
-const PORT = 3000;
-const QUEUE = "code-judge";
+const PORT = process.env.PORT || 3000;
+const QUEUE = process.env.QUEUE_NAME || "code-judge";
+const RABBITMQ_URL = process.env.RABBITMQ_URL || "amqp://localhost";
+const REDIS_URL = process.env.REDIS_URL;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+
 app.use(cors({
-  origin: '*'
+  origin: CORS_ORIGIN
 }))
 
-const redisClient = createClient();
+const redisClient = createClient({
+  url: REDIS_URL
+});
 redisClient.connect();
 
 app.use(express.json());
@@ -44,7 +53,7 @@ app.post("/submit", async (req: Request, res: Response) => {
   };
 
   try {
-    const connection = await amqp.connect("amqp://localhost");
+    const connection = await amqp.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE, { durable: false });
     channel.sendToQueue(QUEUE, Buffer.from(JSON.stringify(message)));
