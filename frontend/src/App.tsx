@@ -128,9 +128,6 @@ function App() {
     localStorage.setItem('compilex_testCases', JSON.stringify(testCases));
   }, [testCases]);
 
-  useEffect(() => {
-    localStorage.sCases, { input: "", output: "" }]);
-
   const removeTestCase = (index: number) => {
     if (testCases.length > 1) {
       setTestCases(testCases.filter((_, i) => i !== index));
