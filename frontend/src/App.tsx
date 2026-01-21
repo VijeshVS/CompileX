@@ -77,18 +77,66 @@ func main() {
 };
 
 function App() {
-  const [code, setCode] = useState<string>(
-    DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id]
-  );
-  const [language, setLanguage] = useState<string>(SUPPORTED_LANGUAGES[0].id);
-  const [timeLimit, setTimeLimit] = useState<number>(1);
-  const [memoryLimit, setMemoryLimit] = useState<number>(256);
-  const [testCases, setTestCases] = useState<TestCase[]>([
-    { input: "5 3", output: "8" },
-    { input: "10 20", output: "30" },
-  ]);
+  // Load initial state from localStorage or use defaults
+  const [code, setCode] = useState<string>(() => {
+    const saved = localStorage.getItem('compilex_code');
+    return saved || DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id];
+  });
+  
+  const [language, setLanguage] = useState<string>(() => {
+    const saved = localStorage.getItem('compilex_language');
+    return saved || SUPPORTED_LANGUAGES[0].id;
+  });
+  
+  const [timeLimit, setTimeLimit] = useState<number>(() => {
+    const saved = localStorage.getItem('compilex_timeLimit');
+    return saved ? Number(saved) : 1;
+  });
+  
+  const [memoryLimit, setMemoryLimit] = useState<number>(() => {
+    const saved = localStorage.getItem('compilex_memoryLimit');
+    return saved ? Number(saved) : 256;
+  });
+  
+  const [testCases, setTestCases] = useState<TestCase[]>(() => {
+    const saved = localStorage.getItem('compilex_testCases');
+    return saved ? JSON.parse(saved) : [
+      { input: "5 3", output: "8" },
+      { input: "10 20", output: "30" },
+    ];
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [executionResults, setExecutionResults] = useState<any[]>([]);
+  
+  const [executionResults, setExecutionResults] = useState<any[]>(() => {
+    const saved = localStorage.getItem('compilex_executionResults');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Save to localStorage whenever state changes
+  useEffect(() => {
+    localStorage.setItem('compilex_code', code);
+  }, [code]);
+
+  useEffect(() => {
+    localStorage.setItem('compilex_language', language);
+  }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem('compilex_timeLimit', String(timeLimit));
+  }, [timeLimit]);
+
+  useEffect(() => {
+    localStorage.setItem('compilex_memoryLimit', String(memoryLimit));
+  }, [memoryLimit]);
+
+  useEffect(() => {
+    localStorage.setItem('compilex_testCases', JSON.stringify(testCases));
+  }, [testCases]);
+
+  useEffect(() => {
+    localStorage.setItem('compilex_executionResults', JSON.stringify(executionResults));
+  }, [executionResults]);
 
   useEffect(() => {
     setCode(DEFAULT_CODE[language]);
