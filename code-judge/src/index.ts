@@ -82,6 +82,18 @@ async function TestAgainstTestCases(
         clearTimeout(tle_timeout);
         clearInterval(memory_monitor);
 
+        // Normalize output by trimming each line and removing trailing spaces
+        const normalizeOutput = (str: string) => {
+          return str
+            .split('\n')
+            .map(line => line.trimEnd())
+            .join('\n')
+            .trim();
+        };
+
+        const normalizedObservedOutput = normalizeOutput(output.replace(/\r\n/g, '\n'));
+        const normalizedExpectedOutput = normalizeOutput(test_case.output.replace(/\r\n/g, '\n'));
+
         const currentOutput: CodeOutput = {
           input: test_case.input,
           expected_output: test_case.output,
@@ -97,7 +109,12 @@ async function TestAgainstTestCases(
           currentOutput.status = errorStatusCode;
           currentOutput.error = errorMessage;
         } else {
-          if (test_case.output.trim() != output.trim()) {
+          // Check if outputs match
+          if (normalizedExpectedOutput === normalizedObservedOutput) {
+            currentOutput.status = CodeJudgeStatus.ACCEPTED;
+          } else {
+            console.log(normalizedExpectedOutput)
+            console.log(normalizedObservedOutput)
             currentOutput.status = CodeJudgeStatus.WRONG_ANSWER;
           }
         }
