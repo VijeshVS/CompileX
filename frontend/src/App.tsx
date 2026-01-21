@@ -105,10 +105,7 @@ function App() {
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   
-  const [executionResults, setExecutionResults] = useState<any[]>(() => {
-    const saved = localStorage.getItem('compilex_executionResults');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [executionResults, setExecutionResults] = useState<any[]>([]);
 
   // Save to localStorage whenever state changes
   useEffect(() => {
@@ -132,11 +129,7 @@ function App() {
   }, [testCases]);
 
   useEffect(() => {
-    localStorage.setItem('compilex_executionResults', JSON.stringify(executionResults));
-  }, [executionResults]);
-
-  const addTestCase = () =>
-    setTestCases([...testCases, { input: "", output: "" }]);
+    localStorage.sCases, { input: "", output: "" }]);
 
   const removeTestCase = (index: number) => {
     if (testCases.length > 1) {
