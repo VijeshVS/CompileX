@@ -77,10 +77,10 @@ func main() {
 };
 
 function App() {
-  // Load initial state from localStorage or use defaults
+  // Load initial state from localStorage only
   const [code, setCode] = useState<string>(() => {
     const saved = localStorage.getItem('compilex_code');
-    return saved || DEFAULT_CODE[SUPPORTED_LANGUAGES[0].id];
+    return saved || '';
   });
   
   const [language, setLanguage] = useState<string>(() => {
@@ -100,10 +100,7 @@ function App() {
   
   const [testCases, setTestCases] = useState<TestCase[]>(() => {
     const saved = localStorage.getItem('compilex_testCases');
-    return saved ? JSON.parse(saved) : [
-      { input: "5 3", output: "8" },
-      { input: "10 20", output: "30" },
-    ];
+    return saved ? JSON.parse(saved) : [{ input: "", output: "" }];
   });
   
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -137,10 +134,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem('compilex_executionResults', JSON.stringify(executionResults));
   }, [executionResults]);
-
-  useEffect(() => {
-    setCode(DEFAULT_CODE[language]);
-  }, [language]);
 
   const addTestCase = () =>
     setTestCases([...testCases, { input: "", output: "" }]);
